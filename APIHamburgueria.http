@@ -1,0 +1,6 @@
+@APIHamburgueria_HostAddress = http://localhost:5030
+
+GET {{APIHamburgueria_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
