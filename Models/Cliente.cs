@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace APIHamburgueria.Models
 {
@@ -21,7 +22,9 @@ namespace APIHamburgueria.Models
 
         public int NumeroTelefone { get; set; }
 
+        [JsonIgnore]
         public ICollection<Pedido>? Pedidos { get; set; }
+        [JsonIgnore]
         public Endereco? Endereco { get; set; }
 
     }

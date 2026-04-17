@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
 
-
 namespace APIHamburgueria.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
 
@@ -22,7 +20,6 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpGet]
-
         public ActionResult<IEnumerable<Cliente>> Get()
         {
             var clientes = _context.Clientes.ToList();
@@ -31,7 +28,7 @@ namespace APIHamburgueria.Controllers
             {
                 return NotFound("Clientes não encontrado...");
             }
-            return clientes;
+            return Ok(clientes);
         }
 
         [HttpGet("{id:int}", Name = "ObterCliente")]
@@ -43,7 +40,7 @@ namespace APIHamburgueria.Controllers
             {
                 return NotFound("Cliente não encontrado...");
             }
-            return cliente;
+            return Ok(cliente);
         }
 
         [HttpPost]
@@ -62,7 +59,6 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpPut("{id:int}")]
-
         public ActionResult Put(int id, Cliente cliente)
         {
             if(id != cliente.Id)
@@ -83,16 +79,13 @@ namespace APIHamburgueria.Controllers
 
             if(cliente is null)
             {
-                return BadRequest("Cliente não encontrado...");
+                return NotFound("Cliente não encontrado...");
             }
 
-            _context.Entry(cliente).State = EntityState.Deleted;
+            _context.Clientes.Remove(cliente);
             _context.SaveChanges();
 
             return Ok(cliente);
         }
-
-
-
     }
 }

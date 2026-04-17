@@ -1,0 +1,99 @@
+﻿using APIHamburgueria.Context;
+using APIHamburgueria.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace APIHamburgueria.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+
+    public class PedidosController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public PedidosController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet("clientes")]
+        public ActionResult<IEnumerable<Pedido>> GetPedidosClientes()
+        {
+            return _context.Pedidos.Include(c => c.Cliente).ToList();
+        }
+
+        [HttpGet]
+        public ActionResult<IEnumerable<Pedido>> Get()
+        {
+            var pedidos = _context.Pedidos.ToList();
+
+            if (pedidos is null)
+            {
+                return NotFound("Pedidos não encontrado...");
+            }
+
+            return Ok(pedidos);
+        }
+
+        [HttpGet("{id:int}", Name = "ObterPedido")]
+        public ActionResult<Pedido> Get(int id)
+        {
+            var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
+
+            if (pedido is null)
+            {
+                return NotFound($"Pedido do cliente id: {id} não encontrado...");
+            }
+
+            return Ok(pedido);
+        }
+
+        [HttpPost]
+        public ActionResult Post(Pedido pedido)
+        {
+            if (pedido is null)
+            {
+                return BadRequest();
+            }
+
+            _context.Pedidos.Add(pedido);
+            _context.SaveChanges();
+
+            return new CreatedAtRouteResult("ObterPedido",
+                new { id = pedido.Id }, pedido);
+        }
+
+        [HttpPut("{id:int}")]
+        public ActionResult Put(int id, Pedido pedido)
+        {
+            if (id != pedido.Id)
+            {
+                return BadRequest("ID da URL diferente do ID do pedido");
+            }
+
+            _context.Entry(pedido).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(pedido);
+        }
+
+        [HttpDelete("{id:int}")]
+
+        public ActionResult Delete(int id)
+        {
+            var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
+
+            if(pedido is null)
+            {
+                return NotFound("Pedido nao encontrado...");
+            }
+
+            _context.Remove(pedido);
+            _context.SaveChanges();
+
+            return Ok(pedido);
+        }
+
+    }
+}
