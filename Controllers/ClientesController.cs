@@ -22,7 +22,7 @@ namespace APIHamburgueria.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Cliente>> Get()
         {
-            var clientes = _context.Clientes.ToList();
+            var clientes = _context.Clientes.AsNoTracking().ToList();
 
             if(clientes is null)
             {
@@ -34,7 +34,7 @@ namespace APIHamburgueria.Controllers
         [HttpGet("{id:int}", Name = "ObterCliente")]
         public ActionResult<Cliente> Get(int id)
         {
-            var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+            var cliente = _context.Clientes.AsNoTracking().FirstOrDefault(c => c.Id == id);
 
             if(cliente is null)
             {

@@ -20,13 +20,13 @@ namespace APIHamburgueria.Controllers
         [HttpGet("clientes")]
         public ActionResult<IEnumerable<Pedido>> GetPedidosClientes()
         {
-            return _context.Pedidos.Include(c => c.Cliente).ToList();
+            return _context.Pedidos.AsNoTracking().Include(c => c.Cliente).ToList();
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Pedido>> Get()
         {
-            var pedidos = _context.Pedidos.ToList();
+            var pedidos = _context.Pedidos.AsNoTracking().ToList();
 
             if (pedidos is null)
             {
@@ -39,7 +39,7 @@ namespace APIHamburgueria.Controllers
         [HttpGet("{id:int}", Name = "ObterPedido")]
         public ActionResult<Pedido> Get(int id)
         {
-            var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
+            var pedido = _context.Pedidos.AsNoTracking().FirstOrDefault(p => p.Id == id);
 
             if (pedido is null)
             {
