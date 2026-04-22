@@ -22,70 +22,118 @@ namespace APIHamburgueria.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Cliente>> Get()
         {
-            var clientes = _context.Clientes.AsNoTracking().ToList();
-
-            if(clientes is null)
+            try
             {
-                return NotFound("Clientes não encontrado...");
+                var clientes = _context.Clientes.AsNoTracking().ToList();
+
+                if (clientes is null)
+                {
+                    return NotFound("Clientes não encontrado...");
+                }
+
+                return Ok(clientes);
             }
-            return Ok(clientes);
+
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "ocorrreu um problema ao tratar sua solicitação");
+            }
         }
 
         [HttpGet("{id:int}", Name = "ObterCliente")]
         public ActionResult<Cliente> Get(int id)
         {
-            var cliente = _context.Clientes.AsNoTracking().FirstOrDefault(c => c.Id == id);
-
-            if(cliente is null)
+            try
             {
-                return NotFound("Cliente não encontrado...");
+                var cliente = _context.Clientes.AsNoTracking().FirstOrDefault(c => c.Id == id);
+
+                if (cliente is null)
+                {
+                    return NotFound("Cliente não encontrado...");
+                }
+
+                return Ok(cliente);
             }
-            return Ok(cliente);
+
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                "ocorrreu um problema ao tratar sua solicitação");
+            }
         }
 
         [HttpPost]
         public ActionResult Post(Cliente cliente)
         {
-            if(cliente is null)
+            try
             {
-                return BadRequest();
+                if (cliente is null)
+                {
+                    return BadRequest();
+                }
+
+                _context.Clientes.Add(cliente);
+                _context.SaveChanges();
+
+                return new CreatedAtRouteResult("ObterCliente",
+                    new { id = cliente.Id }, cliente);
             }
 
-            _context.Clientes.Add(cliente);
-            _context.SaveChanges();
-
-            return new CreatedAtRouteResult("ObterCliente",
-                new { id = cliente.Id }, cliente);
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                "ocorrreu um problema ao tratar sua solicitação");
+            }
+            
         }
 
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Cliente cliente)
         {
-            if(id != cliente.Id)
+            try
             {
-                return BadRequest("Cliente não encontrado...");
+                if (id != cliente.Id)
+                {
+                    return BadRequest("Cliente não encontrado...");
+                }
+
+                _context.Entry(cliente).State = EntityState.Modified;
+                _context.SaveChanges();
+
+                return Ok(cliente);
             }
 
-            _context.Entry(cliente).State = EntityState.Modified;
-            _context.SaveChanges();
-
-            return Ok(cliente);
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                "ocorrreu um problema ao tratar sua solicitação");
+            }
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var cliente = _context.Clientes.FirstOrDefault(c=> c.Id == id);
-
-            if(cliente is null)
+            try
             {
-                return NotFound("Cliente não encontrado...");
+                var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+
+                if (cliente is null)
+                {
+                    return NotFound("Cliente não encontrado...");
+                }
+
+                _context.Clientes.Remove(cliente);
+                _context.SaveChanges();
+
+                return Ok(cliente);
             }
 
-            _context.Clientes.Remove(cliente);
-            _context.SaveChanges();
-
-            return Ok(cliente);
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                "ocorrreu um problema ao tratar sua solicitação");
+            }
         }
     }
 }
