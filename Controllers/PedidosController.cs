@@ -47,7 +47,7 @@ namespace APIHamburgueria.Controllers
 
         }
 
-        [HttpGet("{id:int}", Name = "ObterPedido")]
+        [HttpGet("{id:int:min(1)}", Name = "ObterPedido")]
         public ActionResult<Pedido> Get(int id)
         {
             try
