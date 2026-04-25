@@ -19,17 +19,18 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpGet("clientes")]
-        public ActionResult<IEnumerable<Pedido>> GetPedidosClientes()
+        public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidosClientesAsync()
         {
-            return _context.Pedidos.AsNoTracking().Include(c => c.Cliente).ToList();
+            return await _context.Pedidos.AsNoTracking().
+                        Include(c => c.Cliente).ToListAsync();
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Pedido>> Get()
+        public async Task<ActionResult<IEnumerable<Pedido>>> GetAsync()
         {
             try
             {
-                var pedidos = _context.Pedidos.AsNoTracking().ToList();
+                var pedidos = await _context.Pedidos.AsNoTracking().ToListAsync();
 
                 if (pedidos is null)
                 {
@@ -48,11 +49,12 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterPedido")]
-        public ActionResult<Pedido> Get(int id)
+        public async Task<ActionResult<Pedido>> GetAsync(int id)
         {
             try
             {
-                var pedido = _context.Pedidos.AsNoTracking().FirstOrDefault(p => p.Id == id);
+                var pedido = await _context.Pedidos.AsNoTracking().
+                    FirstOrDefaultAsync(p => p.Id == id);
 
                 if (pedido is null)
                 {

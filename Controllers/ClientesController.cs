@@ -20,11 +20,11 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Cliente>> Get()
+        public async Task<ActionResult<IEnumerable<Cliente>>> GetAsync()
         {
             try
             {
-                var clientes = _context.Clientes.AsNoTracking().ToList();
+                var clientes = await _context.Clientes.AsNoTracking().ToListAsync();
 
                 if (clientes is null)
                 {
@@ -42,11 +42,12 @@ namespace APIHamburgueria.Controllers
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterCliente")]
-        public ActionResult<Cliente> Get(int id)
+        public async Task<ActionResult<Cliente>> GetAsync(int id)
         {
             try
             {
-                var cliente = _context.Clientes.AsNoTracking().FirstOrDefault(c => c.Id == id);
+                var cliente = await _context.Clientes.AsNoTracking().
+                    FirstOrDefaultAsync(c => c.Id == id);
 
                 if (cliente is null)
                 {
