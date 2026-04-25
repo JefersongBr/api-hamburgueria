@@ -115,12 +115,9 @@ namespace APIHamburgueria.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                 "ocorrreu um problema ao tratar sua solicitação");
             }
-
-            
         }
 
         [HttpDelete("{id:int}")]
-
         public ActionResult Delete(int id)
         {
             try
@@ -142,10 +139,7 @@ namespace APIHamburgueria.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
                 "ocorrreu um problema ao tratar sua solicitação");
-            }
-
-           
+            }   
         }
-
     }
 }
