@@ -1,4 +1,5 @@
 ﻿using APIHamburgueria.Context;
+using APIHamburgueria.Filters;
 using APIHamburgueria.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -13,128 +14,80 @@ namespace APIHamburgueria.Controllers
     public class ClientesController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ClientesController> _logger;
 
-        public ClientesController(AppDbContext context)
+        public ClientesController(AppDbContext context, ILogger<ClientesController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cliente>>> GetAsync()
         {
-            try
-            {
-                var clientes = await _context.Clientes.AsNoTracking().ToListAsync();
+            return await _context.Clientes.AsNoTracking().ToListAsync();
 
-                if (clientes is null)
-                {
-                    return NotFound("Clientes não encontrado...");
-                }
-
-                return Ok(clientes);
-            }
-
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "ocorrreu um problema ao tratar sua solicitação");
-            }
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterCliente")]
         public async Task<ActionResult<Cliente>> GetAsync(int id)
         {
-            try
+            var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+
+            if (cliente == null)
             {
-                var cliente = await _context.Clientes.AsNoTracking().
-                    FirstOrDefaultAsync(c => c.Id == id);
-
-                if (cliente is null)
-                {
-                    return NotFound("Cliente não encontrado...");
-                }
-
-                return Ok(cliente);
+                _logger.LogWarning($"Cliente com id= {id} não encontrada...");
+                return NotFound($"Cliente com id= {id} não encontrada...");
             }
-
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+            return Ok(cliente);
         }
 
         [HttpPost]
         public ActionResult Post(Cliente cliente)
         {
-            try
+            if (cliente is null)
             {
-                if (cliente is null)
-                {
-                    return BadRequest();
-                }
-
-                _context.Clientes.Add(cliente);
-                _context.SaveChanges();
-
-                return new CreatedAtRouteResult("ObterCliente",
-                    new { id = cliente.Id }, cliente);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
 
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
-            
+            _context.Clientes.Add(cliente);
+            _context.SaveChanges();
+
+            return new CreatedAtRouteResult("ObterClientes", new { id = cliente.Id }, cliente);
+
+
         }
 
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Cliente cliente)
         {
-            try
+            if (id != cliente.Id)
             {
-                if (id != cliente.Id)
-                {
-                    return BadRequest("Cliente não encontrado...");
-                }
-
-                _context.Entry(cliente).State = EntityState.Modified;
-                _context.SaveChanges();
-
-                return Ok(cliente);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
 
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+            _context.Entry(cliente).State = EntityState.Modified;
+            _context.SaveChanges();
+            return Ok(cliente);
+
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            try
+            var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+
+            if (cliente == null)
             {
-                var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
-
-                if (cliente is null)
-                {
-                    return NotFound("Cliente não encontrado...");
-                }
-
-                _context.Clientes.Remove(cliente);
-                _context.SaveChanges();
-
-                return Ok(cliente);
+                _logger.LogWarning($"Cliente com id={id} não encontrada...");
+                return NotFound($"Cliente com id={id} não encontrada...");
             }
 
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+            _context.Clientes.Remove(cliente);
+            _context.SaveChanges();
+            return Ok(cliente);
         }
     }
 }

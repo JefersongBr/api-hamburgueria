@@ -12,6 +12,7 @@ namespace APIHamburgueria.Controllers
     public class PedidosController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<PedidosController> _logger;
 
         public PedidosController(AppDbContext context)
         {
@@ -28,118 +29,70 @@ namespace APIHamburgueria.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Pedido>>> GetAsync()
         {
-            try
-            {
-                var pedidos = await _context.Pedidos.AsNoTracking().ToListAsync();
-
-                if (pedidos is null)
-                {
-                    return NotFound("Pedidos não encontrado...");
-                }
-
-                return Ok(pedidos);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "ocorrreu um problema ao tratar sua solicitação");
-                
-            }
+            return await _context.Pedidos.AsNoTracking().ToListAsync();
 
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterPedido")]
         public async Task<ActionResult<Pedido>> GetAsync(int id)
         {
-            try
+            var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
+
+            if (pedido == null)
             {
-                var pedido = await _context.Pedidos.AsNoTracking().
-                    FirstOrDefaultAsync(p => p.Id == id);
-
-                if (pedido is null)
-                {
-                    return NotFound($"Pedido do cliente id: {id} não encontrado...");
-                }
-
-                return Ok(pedido);
+                _logger.LogWarning($"Pedido com id={id} não encontrada...");
+                return NotFound($"Pedido com id={id} não encontrada...");
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
 
-            }
+            _context.Pedidos.Remove(pedido);
+            _context.SaveChanges();
+            return Ok(pedido);
         }
 
         [HttpPost]
         public ActionResult Post(Pedido pedido)
         {
-            try
+            if (pedido is null)
             {
-                if (pedido is null)
-                {
-                    return BadRequest();
-                }
-
-                _context.Pedidos.Add(pedido);
-                _context.SaveChanges();
-
-                return new CreatedAtRouteResult("ObterPedido",
-                    new { id = pedido.Id }, pedido);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+
+            _context.Pedidos.Add(pedido);
+            _context.SaveChanges();
+
+            return new CreatedAtRouteResult("ObterPedido", new { id = pedido.Id }, pedido);
 
         }
 
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Pedido pedido)
         {
-            try
+            if (id != pedido.Id)
             {
-                if (id != pedido.Id)
-                {
-                    return BadRequest("ID da URL diferente do ID do pedido");
-                }
-
-                _context.Entry(pedido).State = EntityState.Modified;
-                _context.SaveChanges();
-
-                return Ok(pedido);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+
+            _context.Entry(pedido).State = EntityState.Modified;
+            _context.SaveChanges();
+            return Ok(pedido);
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            try
+            var pedido = _context.Clientes.FirstOrDefault(p => p.Id == id);
+
+            if (pedido == null)
             {
-                var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
-
-                if (pedido is null)
-                {
-                    return NotFound("Pedido nao encontrado...");
-                }
-
-                _context.Remove(pedido);
-                _context.SaveChanges();
-
-                return Ok(pedido);
+                _logger.LogWarning($"Pedido com id={id} não encontrada...");
+                return NotFound($"Pedido com id={id} não encontrada...");
             }
-            catch (Exception)
-            {
 
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }   
+            _context.Clientes.Remove(pedido);
+            _context.SaveChanges();
+            return Ok(pedido);
         }
     }
 }
