@@ -1,8 +1,10 @@
 ﻿using APIHamburgueria.Context;
 using APIHamburgueria.Filters;
 using APIHamburgueria.Models;
+using APIHamburgueria.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Data.SqlClient.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
 
@@ -13,28 +15,29 @@ namespace APIHamburgueria.Controllers
 
     public class ClientesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IClienteRepository _repository;
         private readonly ILogger<ClientesController> _logger;
 
-        public ClientesController(AppDbContext context, ILogger<ClientesController> logger)
+        public ClientesController(IClienteRepository repository, ILogger<ClientesController> logger)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetAsync()
+        public ActionResult<IEnumerable<Cliente>> Get()
         {
-            return await _context.Clientes.AsNoTracking().ToListAsync();
+            var cliente = _repository.GetClientes();
 
+            return Ok(cliente);
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterCliente")]
-        public async Task<ActionResult<Cliente>> GetAsync(int id)
+        public ActionResult<Cliente> GetId(int id)
         {
-            var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+            var cliente = _repository.GetCliente(id);
 
-            if (cliente == null)
+            if (cliente is null)
             {
                 _logger.LogWarning($"Cliente com id= {id} não encontrada...");
                 return NotFound($"Cliente com id= {id} não encontrada...");
@@ -51,12 +54,9 @@ namespace APIHamburgueria.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            _context.Clientes.Add(cliente);
-            _context.SaveChanges();
+            var clienteCriado = _repository.Create(cliente);
 
-            return new CreatedAtRouteResult("ObterClientes", new { id = cliente.Id }, cliente);
-
-
+            return new CreatedAtRouteResult("ObterCliente", new { id = clienteCriado.Id }, clienteCriado);
         }
 
         [HttpPut("{id:int}")]
@@ -68,8 +68,7 @@ namespace APIHamburgueria.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            _context.Entry(cliente).State = EntityState.Modified;
-            _context.SaveChanges();
+            _repository.Update(cliente);
             return Ok(cliente);
 
         }
@@ -77,17 +76,17 @@ namespace APIHamburgueria.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var cliente = _context.Clientes.FirstOrDefault(c => c.Id == id);
+            var cliente = _repository.GetCliente(id);
 
-            if (cliente == null)
+            if (cliente is null)
             {
                 _logger.LogWarning($"Cliente com id={id} não encontrada...");
                 return NotFound($"Cliente com id={id} não encontrada...");
             }
 
-            _context.Clientes.Remove(cliente);
-            _context.SaveChanges();
-            return Ok(cliente);
+            var clienteDeletado = _repository.Delete(id);
+            return Ok(clienteDeletado);
+
         }
     }
 }

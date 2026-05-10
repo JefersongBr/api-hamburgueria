@@ -1,5 +1,6 @@
 using APIHamburgueria.Context;
 using APIHamburgueria.Filters;
+using APIHamburgueria.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -25,6 +26,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                  options.UseSqlServer(builder.Configuration.
                  GetConnectionString("DefaultConnection")));
 
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
