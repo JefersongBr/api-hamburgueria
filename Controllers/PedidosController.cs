@@ -1,5 +1,6 @@
 ﻿using APIHamburgueria.Context;
 using APIHamburgueria.Models;
+using APIHamburgueria.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata;
@@ -9,43 +10,35 @@ namespace APIHamburgueria.Controllers
     [ApiController]
     [Route("[controller]")]
 
-    public class PedidosController : Controller
+    public class PedidosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPedidoRepository _repository;
         private readonly ILogger<PedidosController> _logger;
 
-        public PedidosController(AppDbContext context)
+        public PedidosController(IPedidoRepository repository, ILogger<PedidosController> logger)
         {
-            _context = context;
-        }
-
-        [HttpGet("clientes")]
-        public async Task<ActionResult<IEnumerable<Pedido>>> GetPedidosClientesAsync()
-        {
-            return await _context.Pedidos.AsNoTracking().
-                        Include(c => c.Cliente).ToListAsync();
+            _repository = repository;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Pedido>>> GetAsync()
+        public ActionResult<IEnumerable<Pedido>> Get()
         {
-            return await _context.Pedidos.AsNoTracking().ToListAsync();
+            var pedidos = _repository.GetPedidos();
 
+            return Ok(pedidos);
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterPedido")]
-        public async Task<ActionResult<Pedido>> GetAsync(int id)
+        public ActionResult<Pedido> GetId(int id)
         {
-            var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == id);
+            var pedido = _repository.GetPedido(id);
 
-            if (pedido == null)
+            if (pedido is null)
             {
-                _logger.LogWarning($"Pedido com id={id} não encontrada...");
-                return NotFound($"Pedido com id={id} não encontrada...");
+                _logger.LogWarning($"Pedido com id= {id} não encontrada...");
+                return NotFound($"Pedido com id= {id} não encontrada...");
             }
-
-            _context.Pedidos.Remove(pedido);
-            _context.SaveChanges();
             return Ok(pedido);
         }
 
@@ -58,11 +51,9 @@ namespace APIHamburgueria.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            _context.Pedidos.Add(pedido);
-            _context.SaveChanges();
+            var pedidoCriado = _repository.Create(pedido);
 
-            return new CreatedAtRouteResult("ObterPedido", new { id = pedido.Id }, pedido);
-
+            return new CreatedAtRouteResult("ObterPedido", new { id = pedidoCriado.Id }, pedidoCriado);
         }
 
         [HttpPut("{id:int}")]
@@ -74,25 +65,25 @@ namespace APIHamburgueria.Controllers
                 return BadRequest("Dados inválidos");
             }
 
-            _context.Entry(pedido).State = EntityState.Modified;
-            _context.SaveChanges();
+            _repository.Update(pedido);
             return Ok(pedido);
+
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var pedido = _context.Clientes.FirstOrDefault(p => p.Id == id);
+            var pedido = _repository.GetPedido(id);
 
-            if (pedido == null)
+            if (pedido is null)
             {
                 _logger.LogWarning($"Pedido com id={id} não encontrada...");
                 return NotFound($"Pedido com id={id} não encontrada...");
             }
 
-            _context.Clientes.Remove(pedido);
-            _context.SaveChanges();
-            return Ok(pedido);
+            var pedidoDeletado = _repository.Delete(id);
+            return Ok(pedidoDeletado);
+
         }
     }
 }

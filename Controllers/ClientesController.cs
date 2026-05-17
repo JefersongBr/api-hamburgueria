@@ -27,9 +27,9 @@ namespace APIHamburgueria.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Cliente>> Get()
         {
-            var cliente = _repository.GetClientes();
+            var clientes = _repository.GetClientes();
 
-            return Ok(cliente);
+            return Ok(clientes);
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterCliente")]

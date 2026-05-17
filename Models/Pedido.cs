@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace APIHamburgueria.Models
 {
@@ -16,7 +17,7 @@ namespace APIHamburgueria.Models
         public string Status { get; set; }
 
         public int ClienteId { get; set; }
-
+        [JsonIgnore]
         public Cliente? Cliente { get; set; }
     }
 }

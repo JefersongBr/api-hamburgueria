@@ -1,5 +1,6 @@
 ﻿using APIHamburgueria.Context;
 using APIHamburgueria.Models;
+using APIHamburgueria.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
@@ -10,128 +11,80 @@ namespace APIHamburgueria.Controllers
     [ApiController]
     [Route("[Controller]")]
 
-    public class ProdutosController : Controller
+    public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProdutoRepository _repository;
+        private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(AppDbContext context)
+        public ProdutosController(IProdutoRepository repository, ILogger<ProdutosController> logger)
         {
-            _context = context;
+            _repository = repository;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Produto>>> GetAsync()
+        public ActionResult<IEnumerable<Produto>> Get()
         {
-            try
-            {
-                var produtos = await _context.Produtos.AsNoTracking().ToListAsync();
+            var produtos = _repository.GetProdutos();
 
-                if (produtos is null)
-                {
-                    return NotFound("Produtos não encontrado...");
-                }
-
-                return Ok(produtos);
-            }
-
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "ocorreu um erro ao tratar sua solicitação");
-            }
+            return Ok(produtos);
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
-        public async Task<ActionResult<Produto>> GetAsync(int id)
+        public ActionResult<Produto> GetId(int id)
         {
-            try
-            {
-                var produto = await _context.Produtos.AsNoTracking().
-                    FirstOrDefaultAsync(p => p.Id == id);
+            var produto = _repository.GetProduto(id);
 
-                if (produto is null)
-                {
-                    return NotFound("Produto não encontrado...");
-                }
-                return Ok(produto);
-            }
-
-            catch (Exception)
+            if (produto is null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "ocorreu um erro ao tratar sua solicitação");
+                _logger.LogWarning($"Produto com id= {id} não encontrada...");
+                return NotFound($"Produto com id= {id} não encontrada...");
             }
+            return Ok(produto);
         }
+
         [HttpPost]
         public ActionResult Post(Produto produto)
         {
-            try
+            if (produto is null)
             {
-                if (produto is null)
-                {
-                    return BadRequest();
-                }
-
-                _context.Produtos.Add(produto);
-                _context.SaveChanges();
-
-                return new CreatedAtRouteResult("ObterProduto",
-                    new { id = produto.Id }, produto);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
 
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "ocorreu um erro ao tratar sua solicitação");
-            }
+            var produtoCriado = _repository.Create(produto);
+
+            return new CreatedAtRouteResult("ObterProduto", new { id = produtoCriado.Id }, produtoCriado);
         }
 
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Produto produto)
         {
-            try
+            if (id != produto.Id)
             {
-                if (id != produto.Id)
-                {
-                    return BadRequest("ID da URL diferente do ID do produto");
-                }
-
-                _context.Entry(produto).State = EntityState.Modified;
-                _context.SaveChanges();
-
-                return Ok(produto);
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos");
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+
+            _repository.Update(produto);
+            return Ok(produto);
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            try
+            var produto = _repository.GetProduto(id);
+
+            if (produto is null)
             {
-                var produto = _context.Produtos.FirstOrDefault(p => p.Id == id);
-
-                if (produto is null)
-                {
-                    return NotFound("Produto nao encontrado...");
-                }
-
-                _context.Remove(produto);
-                _context.SaveChanges();
-
-                return Ok(produto);
+                _logger.LogWarning($"Produto com id={id} não encontrada...");
+                return NotFound($"Produto com id={id} não encontrada...");
             }
-            catch (Exception)
-            {
 
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                "ocorrreu um problema ao tratar sua solicitação");
-            }
+            var produtoDeletado = _repository.Delete(id);
+            return Ok(produtoDeletado);
         }
     }
 }
+
 

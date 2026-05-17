@@ -9,6 +9,5 @@ namespace APIHamburgueria.Repositories
         Cliente Create(Cliente cliente);
         Cliente Update(Cliente cliente);
         Cliente Delete(int Id);
-
     }
 }
