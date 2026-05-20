@@ -13,19 +13,17 @@ namespace APIHamburgueria.Controllers
 
     public class ProdutosController : ControllerBase
     {
-        private readonly IProdutoRepository _repository;
-        private readonly ILogger<ProdutosController> _logger;
+        private readonly IUnitOfWork _uof;
 
-        public ProdutosController(IProdutoRepository repository, ILogger<ProdutosController> logger)
+        public ProdutosController(IUnitOfWork uof)
         {
-            _repository = repository;
-            _logger = logger;
+            _uof = uof;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            var produtos = _repository.GetProdutos();
+            var produtos = _uof.ProdutoRepository.GetProdutos();
 
             return Ok(produtos);
         }
@@ -33,11 +31,10 @@ namespace APIHamburgueria.Controllers
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
         public ActionResult<Produto> GetId(int id)
         {
-            var produto = _repository.GetProduto(id);
+            var produto = _uof.ProdutoRepository.GetProduto(id);
 
             if (produto is null)
             {
-                _logger.LogWarning($"Produto com id= {id} não encontrada...");
                 return NotFound($"Produto com id= {id} não encontrada...");
             }
             return Ok(produto);
@@ -47,12 +44,12 @@ namespace APIHamburgueria.Controllers
         public ActionResult Post(Produto produto)
         {
             if (produto is null)
-            {
-                _logger.LogWarning($"Dados inválidos...");
+            {               
                 return BadRequest("Dados inválidos");
             }
 
-            var produtoCriado = _repository.Create(produto);
+            var produtoCriado = _uof.ProdutoRepository.Create(produto);
+            _uof.commit();
 
             return new CreatedAtRouteResult("ObterProduto", new { id = produtoCriado.Id }, produtoCriado);
         }
@@ -61,27 +58,27 @@ namespace APIHamburgueria.Controllers
         public ActionResult Put(int id, Produto produto)
         {
             if (id != produto.Id)
-            {
-                _logger.LogWarning($"Dados inválidos...");
+            {            
                 return BadRequest("Dados inválidos");
             }
 
-            _repository.Update(produto);
+            _uof.ProdutoRepository.Update(produto);
+            _uof.commit();
             return Ok(produto);
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var produto = _repository.GetProduto(id);
+            var produto = _uof.ProdutoRepository.GetProduto(id);
 
             if (produto is null)
             {
-                _logger.LogWarning($"Produto com id={id} não encontrada...");
                 return NotFound($"Produto com id={id} não encontrada...");
             }
 
-            var produtoDeletado = _repository.Delete(id);
+            var produtoDeletado = _uof.ProdutoRepository.Delete(id);
+            _uof.commit();
             return Ok(produtoDeletado);
         }
     }

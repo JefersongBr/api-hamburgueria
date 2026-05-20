@@ -8,17 +8,15 @@ namespace APIHamburgueria.Repositories
     public class PedidoRepository : IPedidoRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<PedidosController> _logger;
 
-        public PedidoRepository(AppDbContext context, ILogger<PedidosController> logger)
+        public PedidoRepository(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         public IEnumerable<Pedido> GetPedidos()
         {
-            return _context.Pedidos.ToList();
+            return _context.Pedidos.AsNoTracking().ToList();
         }
 
         public Pedido GetPedido(int id)
@@ -34,7 +32,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Pedidos.Add(pedido);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return pedido;  
         }
@@ -46,7 +44,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Pedidos.Entry(pedido).State = EntityState.Modified;
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return pedido;
         }
@@ -61,7 +59,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Pedidos.Remove(pedido);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return pedido;
         }

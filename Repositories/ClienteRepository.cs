@@ -12,16 +12,14 @@ namespace APIHamburgueria.Repositories
     public class ClienteRepository : IClienteRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<ClientesController> _logger;
-        public ClienteRepository(AppDbContext context, ILogger<ClientesController> logger)
+        public ClienteRepository(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         public IEnumerable<Cliente> GetClientes()
         {
-            return _context.Clientes.ToList();
+            return _context.Clientes.AsNoTracking().ToList();
         }
 
         public Cliente GetCliente(int id)
@@ -37,7 +35,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Clientes.Add(cliente);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return cliente;
         }
@@ -50,7 +48,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Clientes.Entry(cliente).State = EntityState.Modified;
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return cliente;
         }
@@ -65,7 +63,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Clientes.Remove(cliente);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return cliente;
         }

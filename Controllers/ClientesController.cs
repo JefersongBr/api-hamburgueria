@@ -15,19 +15,17 @@ namespace APIHamburgueria.Controllers
 
     public class ClientesController : ControllerBase
     {
-        private readonly IClienteRepository _repository;
-        private readonly ILogger<ClientesController> _logger;
+        private readonly IUnitOfWork _uof;
 
-        public ClientesController(IClienteRepository repository, ILogger<ClientesController> logger)
+        public ClientesController(IUnitOfWork uof)
         {
-            _repository = repository;
-            _logger = logger;
+            _uof = uof;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Cliente>> Get()
         {
-            var clientes = _repository.GetClientes();
+            var clientes = _uof.ClienteRepository.GetClientes();
 
             return Ok(clientes);
         }
@@ -35,11 +33,10 @@ namespace APIHamburgueria.Controllers
         [HttpGet("{id:int:min(1)}", Name = "ObterCliente")]
         public ActionResult<Cliente> GetId(int id)
         {
-            var cliente = _repository.GetCliente(id);
+            var cliente = _uof.ClienteRepository.GetCliente(id);
 
             if (cliente is null)
             {
-                _logger.LogWarning($"Cliente com id= {id} não encontrada...");
                 return NotFound($"Cliente com id= {id} não encontrada...");
             }
             return Ok(cliente);
@@ -50,11 +47,11 @@ namespace APIHamburgueria.Controllers
         {
             if (cliente is null)
             {
-                _logger.LogWarning($"Dados inválidos...");
                 return BadRequest("Dados inválidos");
             }
 
-            var clienteCriado = _repository.Create(cliente);
+            var clienteCriado = _uof.ClienteRepository.Create(cliente);
+            _uof.commit();
 
             return new CreatedAtRouteResult("ObterCliente", new { id = clienteCriado.Id }, clienteCriado);
         }
@@ -64,11 +61,11 @@ namespace APIHamburgueria.Controllers
         {
             if (id != cliente.Id)
             {
-                _logger.LogWarning($"Dados inválidos...");
                 return BadRequest("Dados inválidos");
             }
 
-            _repository.Update(cliente);
+            _uof.ClienteRepository.Update(cliente);
+            _uof.commit();
             return Ok(cliente);
 
         }
@@ -76,15 +73,15 @@ namespace APIHamburgueria.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var cliente = _repository.GetCliente(id);
+            var cliente = _uof.ClienteRepository.GetCliente(id);
 
             if (cliente is null)
             {
-                _logger.LogWarning($"Cliente com id={id} não encontrada...");
                 return NotFound($"Cliente com id={id} não encontrada...");
             }
 
-            var clienteDeletado = _repository.Delete(id);
+            var clienteDeletado = _uof.ClienteRepository.Delete(id);
+            _uof.commit();
             return Ok(clienteDeletado);
 
         }

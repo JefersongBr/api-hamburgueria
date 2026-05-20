@@ -3,8 +3,8 @@
     public interface IUnitOfWork
     {
         IClienteRepository ClienteRepository { get; }
-        IPedidoRepository pedidoRepository { get; }
-        IProdutoRepository produtoRepository { get; }
+        IPedidoRepository PedidoRepository { get; }
+        IProdutoRepository ProdutoRepository { get; }
 
         void commit();
     }

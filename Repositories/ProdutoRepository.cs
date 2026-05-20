@@ -9,17 +9,15 @@ namespace APIHamburgueria.Repositories
     public class ProdutoRepository : IProdutoRepository
     {
         readonly private AppDbContext _context;
-        readonly private ILogger<ProdutosController> _logger;
 
-        public ProdutoRepository(AppDbContext context, ILogger<ProdutosController> logger)
+        public ProdutoRepository(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
         public IEnumerable<Produto> GetProdutos()
         {
-            return _context.Produtos.ToList();
+            return _context.Produtos.AsNoTracking().ToList();
         }
 
         public Produto GetProduto(int id)
@@ -35,7 +33,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Add(produto);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return produto;
         }
@@ -48,7 +46,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Produtos.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return produto;
         }
@@ -63,7 +61,7 @@ namespace APIHamburgueria.Repositories
             }
 
             _context.Remove(produto);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             return produto;
         }
